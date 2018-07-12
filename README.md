@@ -19,7 +19,7 @@ ACS_2015_5YR_BG_48.gdb.zip<br>
 ACS_2016_5YR_BG_48.gdb.zip<br>
 
 Layers in the files:
-<code>
+<pre>
 ###-------------------------------------
 2010_ACS_5YR_BG_48.gdb.zip
               layer_name geometry_type features fields
@@ -57,4 +57,4 @@ ACS_2012_5YR_BG_48.gdb.zip
 20            ACS_2012_5YR_BG_48_TEXAS Multi Polygon    15811     15 COUNTYFP, TRACTCE, BLKGRPCE
 21                    BG_METADATA_2012            NA     5478      2
 ###-------------------------------------
-</code>
+</pre>
