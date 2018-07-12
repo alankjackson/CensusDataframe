@@ -1,0 +1,106 @@
+---
+title: "ReadCensusFiles"
+author: "Alan Jackson"
+date: "July 8, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(ggmap)
+library(rgeos)
+library(sf)
+library(lwgeom)
+library(purrr)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read aff_download.zip file
+
+Read the aff download file. Or maybe not.
+
+```{r read aff_download }
+
+directory <- "/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/aff_download"
+
+codes <- c("P8" , "race",
+        "P37" , "FamSize",
+        "P36" , "PopInFamByAge",
+        "H6" , "HouseholderRace",
+        "P1" ,  "population",
+        "P12" , "SexByAge",
+        "H1" , "HousingUnits")
+codes <- cbind.data.frame(split(codes, rep(1:2, times=length(codes)/2)), stringsAsFactors=F)
+names(codes) <- c("code","variable")
+
+list.files(path = directory, pattern = "*_with_ann.csv", full.names = T) 
+
+```
+
+## read Community Survey gdb files
+
+https://www2.census.gov/geo/tiger/TIGER_DP/
+
+```{r Read ACS gdb files}
+
+#   Read files from 2010 to 2016 (the latest)
+#---------------------------------------------------------
+#                         Read 2010
+#---------------------------------------------------------
+for (yr in seq(10,10)) {
+  folder <- paste0("/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/20",yr,"_ACS_5YR_BG_48/")
+  print(folder)
+  filename <- paste0("20", yr, "_ACS_5YR_BG_48_TEXAS.gdb")
+  censuslayers <- st_layers(paste0(folder, filename))
+  layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
+  censusdata <- st_read(paste0(folder, filename), layer = layername) %>%
+    rename(COUNTYFP=COUNTYFP10, TRACTCE=TRACTCE10, BLKGRPCE=BLKGRPCE10) %>%
+    filter(COUNTYFP==201) %>%
+    select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
+
+  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
+  
+  saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
+}
+#---------------------------------------------------------
+#                 Read 2011
+#---------------------------------------------------------
+for (yr in seq(11,11)) {
+  folder <- paste0("/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/20",yr,"_ACS_5YR_BG_48/")
+  print(folder)
+  filename <- paste0("20", yr, "_ACS_5YR_BG_48_TEXAS.gdb")
+  censuslayers <- st_layers(paste0(folder, filename))
+  layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
+  censusdata <- st_read(paste0(folder, filename), layer = layername) %>%
+    filter(COUNTYFP==201) %>%
+    select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
+
+  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
+  
+  saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
+}
+#---------------------------------------------------------
+#                 Read 2012-2016
+#---------------------------------------------------------
+
+for (yr in seq(12,16)) {
+  folder <- paste0("/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/20",yr,"_ACS_5YR_BG_48/")
+  print(folder)
+  filename <- paste0("ACS_20", yr,"_5YR_BG_48_TEXAS.gdb") 
+  layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
+
+censusdata <- c(layername, "X01_AGE_AND_SEX", "X02_RACE", "X03_HISPANIC_OR_LATINO_ORIGIN", "X19_INCOME") %>%
+  map_dfc(~st_read(paste0(folder, filename), layer = .)) %>%
+  filter(COUNTYFP==201) %>% 
+  select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
+    
+  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
+  
+  saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
+}
+
+
+```
+
