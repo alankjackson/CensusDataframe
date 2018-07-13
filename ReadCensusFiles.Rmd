@@ -17,28 +17,6 @@ library(purrr)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Read aff_download.zip file
-
-Read the aff download file. Or maybe not.
-
-```{r read aff_download }
-
-directory <- "/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/aff_download"
-
-codes <- c("P8" , "race",
-        "P37" , "FamSize",
-        "P36" , "PopInFamByAge",
-        "H6" , "HouseholderRace",
-        "P1" ,  "population",
-        "P12" , "SexByAge",
-        "H1" , "HousingUnits")
-codes <- cbind.data.frame(split(codes, rep(1:2, times=length(codes)/2)), stringsAsFactors=F)
-names(codes) <- c("code","variable")
-
-list.files(path = directory, pattern = "*_with_ann.csv", full.names = T) 
-
-```
-
 ## read Community Survey gdb files
 
 https://www2.census.gov/geo/tiger/TIGER_DP/
