@@ -14,6 +14,8 @@ library(sf)
 library(lwgeom)
 library(purrr)
 
+options(stringsAsFactors = FALSE)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -78,6 +80,62 @@ censusdata <- c(layername, "X01_AGE_AND_SEX", "X02_RACE", "X03_HISPANIC_OR_LATIN
   
   saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
 }
+
+
+```
+
+
+##     Read in zip code files - really ZCTA files
+
+Get polygons for ZCTA areas from https://www2.census.gov/geo/tiger/TIGER_DP/
+
+Get the data from ACS_??_5YR_DP05_with_ann.csv files where ?? = year from 2011-2016
+
+```{r read zipcode files}
+#---------------------------------------------------------
+#                 Read 2011-2016
+#---------------------------------------------------------
+
+folder <- paste0("/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/zipcodefiles/")
+
+for (yr in seq(11,16)) {
+  filename <- paste0(folder,"ACS_", yr,"_5YR_DP05_with_ann.csv") 
+
+  censusdf <- read.csv(filename) %>%
+    select(GEO.id2, HC01_VC03, HC01_VC04, HC01_VC07, HC01_VC08, HC01_VC09, HC01_VC10, HC01_VC11, HC01_VC12, HC01_VC13, HC01_VC14, HC01_VC15, HC01_VC16, HC01_VC17, HC01_VC18, HC01_VC19, HC01_VC21, HC01_VC43, HC01_VC44, HC01_VC81 ) %>%
+    filter(GEO.id2 != "Id2")
+    
+  names(censusdf) <- c("ZCTA", "Pop", "MalePop", "Age0to4", "Age5to9", "Age10to14", "Age15to19", "Age20to24", "Age25to34", "Age35to44", "Age45to54", "Age55to59", "Age60to64", "Age65to74", "Age75to84", "Age85andup", "MedianAge", "White", "Black", "Hispanic") 
+  
+  saveRDS(censusdf, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/TexasZipcode_", yr, ".rds"))
+}
+
+#---------------------------------------------------------
+#                 Read 2010
+#---------------------------------------------------------
+
+folder <- paste0("/home/ajackson/Dropbox/Rprojects/CensusDataframe/CensusData/zipcodefiles/")
+
+yr <- "10"
+
+filename <- paste0(folder,"DEC_", yr,"_SF1_SF1DP1_with_ann.csv") 
+
+censusdf <- read.csv(filename) %>%
+    select(GEO.id2, HD01_S001, HD01_S026, HD01_S002, HD01_S003, HD01_S004, HD01_S005, HD01_S006, HD01_S007, HD01_S008, HD01_S009, HD01_S010, HD01_S011, HD01_S012, HD01_S013, HD01_S014, HD01_S015, HD01_S016, HD01_S017, HD01_S018, HD01_S019, HD01_S020, HD01_S078, HD01_S079, HD01_S107) %>%
+    filter(GEO.id2 != "Id2")
+    
+names(censusdf) <- c("ZCTA", "Pop", "MalePop", "Age0to4", "Age5to9", "Age10to14", "Age15to19", "Age20to24", "Age25to29", "Age30to34", "Age35to39", "Age40to44", "Age45to49", "Age50to54", "Age55to59", "Age60to64", "Age65to69", "Age70to74", "Age75to79", "Age80to84", "Age85andup", "MedianAge", "White", "Black", "Hispanic") 
+  
+#  Make all fields numeric
+
+
+censusdf <- censusdf %>%
+  mutate(Age25to34=Age25to29+Age30to34, 
+         Age35to44=Age35to39+Age40to44, 
+         Age45to54=Age45to49+Age50to54) %>%
+  select(-one_of(Age25to29, Age30to34, Age35to39, Age40to44, Age45to49, Age50to54))
+
+saveRDS(censusdf, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/TexasZipcode_", yr, ".rds"))
 
 
 ```
