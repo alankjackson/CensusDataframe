@@ -72,11 +72,11 @@ for (yr in seq(12,16)) {
   layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
 
 censusdata <- c(layername, "X01_AGE_AND_SEX", "X02_RACE", "X03_HISPANIC_OR_LATINO_ORIGIN", "X19_INCOME") %>%
-  map_dfc(~st_read(paste0(folder, filename), layer = .)) %>%
+  map_dfc(~st_read(paste0(folder, filename), layer = ., as_tibble=TRUE)) %>%
   filter(COUNTYFP==201) %>% 
   select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
     
-  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
+  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome", "Shape")
   
   saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
 }
