@@ -1,0 +1,45 @@
+---
+title: "Read Household Size"
+author: "Alan Jackson"
+date: "7/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+File is ZCTA, # households, # households 3+ gen, # households < 3 gen
+
+
+
+```{r read}
+
+House <- read_csv("CensusData/ZCTA_based_data/DECENNIALSF12010.PCT14_data_with_overlays_2020-07-26T231216.csv")
+
+# remove extra row
+House <- House[2:nrow(House),]
+
+# rename columns  
+names(House) <- c("Geoid", "ZCTA", "Total_Households", "Households_threegen", "Households_twogen")
+
+# Delete geoid column
+House <- House[,2:5]
+
+# extract just the zipcode
+House$ZCTA <- str_extract(House$ZCTA, "\\d{5}")
+
+# make things numeric
+
+House <- House %>% 
+  mutate_at(c("Total_Households", "Households_threegen", "Households_twogen"), as.numeric)
+
+# Save it out
+
+saveRDS(House, "/home/ajackson/Dropbox/Rprojects/Datasets/HouseholdByZip.rds")
+
+```
+
