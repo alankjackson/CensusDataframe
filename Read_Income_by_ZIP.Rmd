@@ -1,0 +1,46 @@
+---
+title: "Read Family Income by ZCTA"
+author: "Alan Jackson"
+date: "7/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+File is ZCTA, median income, number of families
+
+
+
+```{r read}
+
+Income <- read_csv("CensusData/ZCTA_based_data/ACSST5Y2018.S1903_data_with_overlays_2020-07-26T232412.csv")
+
+# remove extra row
+Income <- Income[2:nrow(House),]
+
+#  select the few things I want
+
+Income <- Income %>% 
+  select(NAME, S1903_C03_015E, S1903_C01_015E)
+
+# rename columns  
+names(Income) <- c("ZCTA", "Med_Income", "Number_Families")
+
+# extract just the zipcode
+Income$ZCTA <- str_extract(Income$ZCTA, "\\d{5}")
+
+# make things numeric
+
+Income <- Income %>% 
+  mutate_at(c("Med_Income", "Number_Families"), as.numeric)
+
+# Save it out
+
+saveRDS(Income, "/home/ajackson/Dropbox/Rprojects/Datasets/IncomeByZip.rds")
+
+```
+
