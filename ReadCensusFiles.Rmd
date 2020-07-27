@@ -37,7 +37,7 @@ for (yr in seq(10,10)) {
   layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
   censusdata <- st_read(paste0(folder, filename), layer = layername) %>%
     rename(COUNTYFP=COUNTYFP10, TRACTCE=TRACTCE10, BLKGRPCE=BLKGRPCE10) %>%
-    filter(COUNTYFP==201) %>%
+    filter(COUNTYFP %in% c(201,157,339)) %>%
     select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
 
   names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
@@ -54,7 +54,7 @@ for (yr in seq(11,11)) {
   censuslayers <- st_layers(paste0(folder, filename))
   layername <- paste0("ACS_20", yr, "_5YR_BG_48_TEXAS")
   censusdata <- st_read(paste0(folder, filename), layer = layername) %>%
-    filter(COUNTYFP==201) %>%
+    filter(COUNTYFP %in% c(201,157,339)) %>%
     select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
 
   names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome")
@@ -73,16 +73,33 @@ for (yr in seq(12,16)) {
 
 censusdata <- c(layername, "X01_AGE_AND_SEX", "X02_RACE", "X03_HISPANIC_OR_LATINO_ORIGIN", "X19_INCOME") %>%
   map_dfc(~st_read(paste0(folder, filename), layer = ., as_tibble=TRUE)) %>%
-  filter(COUNTYFP==201) %>% 
-  select(TRACTCE, BLKGRPCE, B01002e1, B01002e2, B01002e3, B02001e1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1)
+  filter(COUNTYFP %in% c(201,157,339)) %>%
+  select(COUNTYFP, TRACTCE, BLKGRPCE, B01002e1, B01002m1, B01002e2, B01002e3, B02001e1, B02001m1, B02001e2, B02001e3, B02001e4, B02001e5, B03002e12, B19013e1, B19013m1)
     
-  names(censusdata) <- c("Tract", "BlkGrp", "MedAge", "MedAgeMale", "MedAgeFemale", "Pop", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome", "Shape")
+  names(censusdata) <- c("County", "Tract", "BlkGrp", "MedAge", "MedAgeSigma", "MedAgeMale", "MedAgeFemale", "Pop", "PopSigma", "White", "Black", "Amerind", "Asian", "Hispanic", "MedIncome", "MedIncomeSigma", "Shape")
   
   saveRDS(censusdata, file = paste0("~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_", yr, ".rds"))
 }
 
 
 ```
+
+##    Read in census Gini files
+
+```{r Gini}
+
+path <- "~/Dropbox/Rprojects/CensusDataframe/"
+df <- read_csv(paste0(path,"ACS_16_5YR_B19083_with_ann.csv"), 
+               skip=2, 
+               col_names = FALSE) %>% 
+  select(tract=X2, Gini=X4, Gini_Error=X5) %>% 
+  mutate(tract=as.character(tract),
+         Gini=as.numeric(Gini),
+         Gini_Error=as.numeric(Gini_Error))
+
+  saveRDS(df, file = "~/Dropbox/Rprojects/CensusDataframe/CensusData/HarrisCounty_Gini_2016.rds")
+```
+
 
 
 ##     Read in zip code files - really ZCTA files
