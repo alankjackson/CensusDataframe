@@ -1,0 +1,97 @@
+---
+title: "Read_Calculate_Precinct_to_zip"
+author: "Alan Jackson"
+date: "7/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(sf)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Read in presidential results by precinct
+
+Read in and pare down to Harris county
+
+```{r precinct data}
+
+path <- "/home/ajackson/Dropbox/Rprojects/"
+
+load("../Datasets/electionprecincts/presidential_precincts_2016.rda")
+
+df2 <- df1 %>% 
+  filter(state=="Texas") %>% 
+  filter(county_name=="Harris County") %>% 
+  select(precinct, candidate_normalized, votes) %>% 
+  filter((candidate_normalized=="clinton")|
+         (candidate_normalized=="trump")) %>% 
+  pivot_wider(precinct, names_from=candidate_normalized, values_from=votes)
+
+saveRDS(df2, "/home/ajackson/Dropbox/Rprojects/Datasets/HarrisPrecinct2016.rds")
+
+#   Read in shape file
+
+precincts <- read_sf('/home/ajackson/Dropbox/Rprojects/Datasets/electionprecincts/COH_VOTING_PRECINCTS_HARRIS_COUNTY-shp/COH_VOTING_PRECINCTS_HARRIS_COUNTY.shp')
+
+Zip_poly <- readRDS(paste0(path, "Datasets/ZipCodes_sf.rds"))
+```
+
+##  Intersect zip polys and precinct polys
+
+Now I need to intersect the two datasets and determine which fraction of 
+which precincts lie within each zipcode.
+
+```{r intersects}
+
+intersect <- st_intersection(Zip_poly, precincts)
+
+answer <- intersect %>% 
+  mutate(area=st_area(.) %>% as.numeric()) %>% 
+  as_tibble() %>% 
+  group_by(Zip_Code, PRECINCT) %>% 
+  summarize(area = sum(area))
+
+answer <- answer %>% 
+  group_by(PRECINCT) %>% 
+    mutate(total_area=sum(area)) %>% 
+    mutate(fraction=area/total_area) %>% 
+  ungroup() 
+
+df2 <- df2 %>% 
+  mutate(PRECINCT=str_remove(precinct, "^201"))
+
+foo <- left_join(answer, df2, by="PRECINCT") %>% 
+  group_by(Zip_Code) %>% 
+    summarize(clinton=sum(fraction*clinton, na.rm=TRUE), 
+              trump=sum(fraction*trump, na.rm=TRUE)) %>% 
+  mutate(blueness=clinton/(clinton+trump)) %>%
+  mutate(total_vote=clinton+trump) %>% 
+  select(ZCTA=Zip_Code, blueness, total_vote)
+  
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
